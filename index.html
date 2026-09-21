@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pádel Mamás</title>
+<meta name="theme-color" content="#1f6f5c">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23d8e84a'/><path d='M14 38c20 8 52 8 72 0M14 62c20-8 52-8 72 0' stroke='%23fff' stroke-width='6' fill='none'/></svg>">
+<style>
+:root{
+  --bg:#f4f6f2; --card:#fff; --ink:#1c2420; --muted:#66706a; --line:#e2e7e1;
+  --brand:#1f6f5c; --brand-ink:#fff; --accent:#d8e84a; --free:#eef5f1;
+  --me:#fff6d6; --wait:#fdecec; --danger:#b3261e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:18px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+header{background:var(--brand);color:var(--brand-ink);padding:18px 16px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:24px}
+header p{margin:4px 0 0;font-size:15px;opacity:.9}
+main{max-width:560px;margin:0 auto;padding:12px 16px 120px}
+.dia{margin:22px 0 8px;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--brand)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h3{margin:0;font-size:20px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.chip{background:var(--free);border-radius:99px;padding:3px 10px;font-size:14px;color:var(--brand);font-weight:600}
+.chip.lleno{background:var(--wait);color:var(--danger)}
+ol.slots{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+ol.slots li{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 10px;border-radius:12px;background:#f7f8f6}
+ol.slots li .n{width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+ol.slots li.libre{background:var(--free);color:var(--muted);cursor:pointer}
+ol.slots li.libre .n{background:#b9cfc5}
+ol.slots li.yo{background:var(--me)}
+ol.slots li .nombre{flex:1;font-weight:600}
+ol.slots li.libre .nombre{font-weight:400}
+.espera-t{margin:12px 0 6px;font-size:14px;font-weight:700;color:var(--danger)}
+ol.slots.espera li{background:var(--wait)}
+ol.slots.espera li .n{background:var(--danger)}
+button{font:inherit;border:0;border-radius:12px;cursor:pointer}
+.btn{background:var(--brand);color:#fff;padding:14px 18px;font-weight:700;width:100%;font-size:18px}
+.btn.sec{background:#e7ece8;color:var(--ink)}
+.btn.peligro{background:var(--danger)}
+.mini{background:transparent;color:var(--danger);padding:6px 8px;font-size:15px;font-weight:600}
+.anotar{margin-top:12px}
+.vacio{text-align:center;color:var(--muted);padding:40px 10px}
+footer{text-align:center;margin-top:30px}
+footer button{background:none;color:var(--muted);text-decoration:underline;font-size:15px;padding:10px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.modal.on{display:flex}
+.hoja{background:#fff;width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.hoja h2{margin:0 0 4px;font-size:22px}
+.hoja .sub{margin:0 0 16px;color:var(--muted);font-size:16px}
+label{display:block;font-weight:600;margin:12px 0 6px;font-size:16px}
+input,select,textarea{font:inherit;width:100%;padding:12px;border:1.5px solid #cfd6d1;border-radius:12px;background:#fff;color:var(--ink);font-size:18px}
+input:focus,select:focus{outline:3px solid var(--accent);border-color:var(--brand)}
+.fila{display:flex;gap:10px;margin-top:16px}
+.fila>*{flex:1}
+.err{color:var(--danger);font-weight:600;margin-top:10px;min-height:1em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:99px;font-size:16px;opacity:0;transition:.25s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.adminbar{background:var(--accent);border-radius:16px;padding:14px;margin-top:12px}
+.adminbar b{display:block;margin-bottom:10px}
+.adminbar .fila{margin-top:8px}
+.ya{font-size:15px;color:var(--muted);margin:10px 0 0}
+.nuevo{border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;margin-top:12px;position:relative}
+.nuevo .quitar{position:absolute;right:6px;top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.cargando{color:var(--muted);text-align:center;padding:30px}
+.demo{background:#fff3cd;color:#664d03;font-size:14px;padding:8px 12px;border-radius:10px;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎾 Pádel Mamás</h1>
+  <p id="saludo">Toca un espacio libre para anotarte</p>
+</header>
+
+<main>
+  <div id="demo" class="demo" hidden>Modo prueba: los datos no se guardan. Falta pegar la URL de Google en el código.</div>
+  <div id="admin" hidden></div>
+  <div id="lista"><p class="cargando">Cargando horarios…</p></div>
+  <footer><button id="btnAdmin">Soy administradora</button></footer>
+</main>
+
+<!-- Modal anotarse -->
+<div class="modal" id="mAnotar">
+  <div class="hoja">
+    <h2>Anotarme</h2>
+    <p class="sub" id="aInfo"></p>
+    <label for="aNombre">Tu nombre</label>
+    <input id="aNombre" autocomplete="given-name" maxlength="30" placeholder="Ej: Caro López">
+    <label for="aTel">Últimos 4 números de tu celular</label>
+    <input id="aTel" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Ej: 4821">
+    <p class="err" id="aErr"></p>
+    <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="aOk">Anotarme</button></div>
+  </div>
+</div>
+
+<!-- Modal salir -->
+<div class="modal" id="mSalir">
+  <div class="hoja">
+    <h2>¿Quitar este nombre?</h2>
+    <p class="sub" id="sInfo"></p>
+    <div id="sTelBox">
+      <label for="sTel">Últimos 4 números de tu celular</label>
+      <input id="sTel" inputmode="numeric" pattern="[0-9]*" maxlength="4">
+    </div>
+    <p class="err" id="sErr"></p>
+    <div class="fila"><button class="btn sec" data-cerrar>No</button><button class="btn peligro" id="sOk">Sí, quitar</button></div>
+  </div>
+</div>
+
+<!-- Modal PIN admin -->
+<div class="modal" id="mPin">
+  <div class="hoja">
+    <h2>Administradoras</h2>
+    <p class="sub">Solo para Mechas y Maya</p>
+    <label for="pIn">Clave</label>
+    <input id="pIn" type="password" inputmode="numeric">
+    <p class="err" id="pErr"></p>
+    <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="pOk">Entrar</button></div>
+  </div>
+</div>
+
+<!-- Modal nuevos horarios -->
+<div class="modal" id="mNuevos">
+  <div class="hoja">
+    <h2>Publicar horarios</h2>
+    <p class="sub">Agrega las canchas disponibles de la semana</p>
+    <div id="nFilas"></div>
+    <div class="fila"><button class="btn sec" id="nMas">+ Otro horario</button></div>
+    <p class="err" id="nErr"></p>
+    <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="nOk">Publicar</button></div>
+  </div>
+</div>
+
+<!-- Modal pegar WhatsApp -->
+<div class="modal" id="mPegar">
+  <div class="hoja">
+    <h2>Pegar lista de WhatsApp</h2>
+    <p class="sub">Copia el mensaje del grupo (como siempre lo escriben) y pégalo aquí. Se convierte solo en horarios, con los nombres que ya estén.</p>
+    <textarea id="wTxt" rows="10" placeholder="Martes 22 MIXTO&#10;Cancha 1 de 7a 8pm&#10;1. Jana&#10;2. Bel&#10;3.&#10;4."></textarea>
+    <p class="err" id="wErr"></p>
+    <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="wOk">Convertir</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== CONFIGURACIÓN ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwqhvUpE9TSgKWmd5H_HynsjlRFexzX0DMOrO4qFei-shsc-k8bBaSi12KNx0c117Rq7A/exec'; // pega aquí la URL de Apps Script que termina en /exec
+const NIVELES = ['Mixto', 'Intermedio', 'Principiante', 'Avanzado'];
+const CANCHAS = ['Cancha 1', 'Cancha 2', 'Cancha Goya'];
+const EMOJI = { Mixto: '🟠', Intermedio: '🔵', Principiante: '🟢', Avanzado: '🔴' };
+const HORARIOS = ['7:00 a 8:00 am', '8:00 a 9:00 am', '9:00 a 10:00 am', '10:00 a 11:00 am',
+  '11:00 a 12:00 pm', '5:00 a 6:00 pm', '6:00 a 7:00 pm', '7:00 a 8:00 pm', '8:00 a 9:00 pm'];
+/* =========================== */
+
+const $ = s => document.querySelector(s);
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem('padel_' + k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem('padel_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('padel_' + k); } catch (e) {} }
+};
+let S = { turnos: [], inscritas: [], hoy: '' };
+let yo = store.get('yo') || { nombre: '', tel4: '' };
+let pin = store.get('pin') || '';
+let ocupado = false;
+
+/* ---------- Backend (o modo prueba) ---------- */
+const demo = !API_URL;
+if (demo) $('#demo').hidden = false;
+let D = null;
+
+async function api(accion, datos = {}) {
+  if (demo) { D = D || demoData(); return demoApi(accion, datos); }
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ accion }, datos))
+  });
+  return r.json();
+}
+
+async function cargar(silencioso) {
+  try {
+    const r = await api('estado');
+    if (r.ok) { S = r; pintar(); }
+  } catch (e) {
+    if (!silencioso) $('#lista').innerHTML = '<p class="vacio">No se pudo cargar. Revisa tu internet y vuelve a abrir el link.</p>';
+  }
+}
+
+/* ---------- Fechas ---------- */
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const f = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const fechaLarga = s => { const d = f(s); return DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()]; };
+const hoyIso = () => S.hoy || iso(new Date());
+const minutos = h => { // "7:00 a 8:00 pm" -> minutos para ordenar
+  const s = String(h).toLowerCase();
+  const horas = [...s.matchAll(/(\d{1,2})(?::(\d{2}))?/g)];
+  if (!horas.length) return 0;
+  let hr = +horas[0][1];
+  const fin = horas[1] ? +horas[1][1] : hr;
+  const pm = /pm/.test(s) && !/am/.test(s);
+  if (pm && hr < 12 && !(fin === 12 && hr < 12 && hr >= 9)) hr += 12;
+  return hr * 60 + (+horas[0][2] || 0);
+};
+
+/* ---------- Pintar ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const soyYo = n => yo.nombre && n.toLowerCase() === yo.nombre.toLowerCase();
+
+function pintar() {
+  $('#saludo').textContent = yo.nombre ? 'Hola ' + yo.nombre.split(' ')[0] + ', toca un espacio libre para anotarte' : 'Toca un espacio libre para anotarte';
+  pintarAdmin();
+  const hoy = hoyIso();
+  const turnos = S.turnos.filter(t => t.fecha >= hoy)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || minutos(a.horario) - minutos(b.horario) || a.cancha.localeCompare(b.cancha));
+  if (!turnos.length) {
+    $('#lista').innerHTML = '<p class="vacio">Todavía no hay horarios publicados.<br>Pronto aparecerán aquí.</p>';
+    return;
+  }
+  let html = '', dia = '';
+  for (const t of turnos) {
+    if (t.fecha !== dia) { dia = t.fecha; html += `<div class="dia">${t.fecha === hoy ? 'Hoy · ' : ''}${fechaLarga(t.fecha)}</div>`; }
+    const ins = S.inscritas.filter(i => i.turnoId === t.id);
+    const tit = ins.slice(0, t.cupos), esp = ins.slice(t.cupos);
+    const libres = t.cupos - tit.length;
+    let li = '';
+    for (let k = 0; k < t.cupos; k++) {
+      const i = tit[k];
+      if (i) {
+        const puedo = soyYo(i.nombre) || pin;
+        li += `<li class="${soyYo(i.nombre) ? 'yo' : ''}"><span class="n">${k + 1}</span><span class="nombre">${esc(i.nombre)}</span>${puedo ? `<button class="mini" data-salir="${i.id}">Quitar</button>` : ''}</li>`;
+      } else {
+        li += `<li class="libre" data-anotar="${t.id}"><span class="n">${k + 1}</span><span class="nombre">Libre · toca para anotarte</span></li>`;
+      }
+    }
+    let espHtml = '';
+    if (esp.length) {
+      espHtml = `<p class="espera-t">Lista de espera</p><ol class="slots espera">` + esp.map((i, k) =>
+        `<li class="${soyYo(i.nombre) ? 'yo' : ''}"><span class="n">${k + 1}</span><span class="nombre">${esc(i.nombre)}</span>${soyYo(i.nombre) || pin ? `<button class="mini" data-salir="${i.id}">Quitar</button>` : ''}</li>`).join('') + '</ol>';
+    }
+    html += `<div class="card">
+      <h3>${esc(t.horario)}</h3>
+      <div class="meta"><span class="chip">${esc(t.cancha)}</span>${t.nivel ? `<span class="chip">${EMOJI[t.nivel] || ''} ${esc(t.nivel)}</span>` : ''}<span class="chip ${libres ? '' : 'lleno'}">${libres ? libres + (libres === 1 ? ' libre' : ' libres') : 'Lleno'}</span></div>
+      <ol class="slots">${li}</ol>${espHtml}
+      ${libres ? '' : `<button class="btn sec anotar" data-anotar="${t.id}">Anotarme en lista de espera</button>`}
+      ${pin ? `<button class="mini" style="margin-top:8px" data-borrar="${t.id}">Borrar este horario</button>` : ''}
+    </div>`;
+  }
+  $('#lista').innerHTML = html;
+}
+
+function pintarAdmin() {
+  const box = $('#admin');
+  $('#btnAdmin').textContent = pin ? 'Salir de administradora' : 'Soy administradora';
+  if (!pin) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<div class="adminbar"><b>Modo administradora</b>
+    <button class="btn" id="aPegar">Pegar lista de WhatsApp</button>
+    <div class="fila"><button class="btn sec" id="aPublicar">+ Agregar horario a mano</button></div>
+    <div class="fila"><button class="btn sec" id="aRepetir">Repetir semana pasada</button></div>
+    <div class="fila"><button class="btn sec" id="aWhats">Copiar lista para WhatsApp</button></div></div>`;
+  $('#aPublicar').onclick = () => abrirNuevos([filaVacia()]);
+  $('#aPegar').onclick = () => { $('#wTxt').value = ''; $('#wErr').textContent = ''; abrir('#mPegar'); setTimeout(() => $('#wTxt').focus(), 200); };
+  $('#aRepetir').onclick = repetirSemana;
+  $('#aWhats').onclick = copiarWhats;
+}
+
+/* ---------- Modales ---------- */
+const abrir = id => { $(id).classList.add('on'); };
+const cerrar = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('on'));
+document.querySelectorAll('[data-cerrar]').forEach(b => b.onclick = cerrar);
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) cerrar(); }));
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
+async function conBoton(btn, fn) {
+  if (ocupado) return; ocupado = true;
+  const txt = btn.textContent; btn.textContent = 'Un momento…'; btn.disabled = true;
+  try { await fn(); } catch (e) { toast('Sin conexión. Intenta de nuevo.'); }
+  btn.textContent = txt; btn.disabled = false; ocupado = false;
+}
+
+/* ---------- Anotarse ---------- */
+let turnoSel = null;
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-anotar]');
+  if (a) {
+    turnoSel = S.turnos.find(t => t.id === a.dataset.anotar);
+    if (!turnoSel) return;
+    $('#aInfo').textContent = fechaLarga(turnoSel.fecha) + ' · ' + turnoSel.horario + ' · ' + turnoSel.cancha;
+    $('#aNombre').value = yo.nombre; $('#aTel').value = yo.tel4; $('#aErr').textContent = '';
+    abrir('#mAnotar');
+    if (!yo.nombre) setTimeout(() => $('#aNombre').focus(), 200);
+    return;
+  }
+  const s = e.target.closest('[data-salir]');
+  if (s) return abrirSalir(s.dataset.salir);
+  const b = e.target.closest('[data-borrar]');
+  if (b) return borrarTurno(b.dataset.borrar, b);
+});
+
+$('#aOk').onclick = () => conBoton($('#aOk'), async () => {
+  const nombre = $('#aNombre').value.replace(/\s+/g, ' ').trim();
+  const tel4 = $('#aTel').value.replace(/\D/g, '');
+  if (!nombre) return $('#aErr').textContent = 'Escribe tu nombre.';
+  if (tel4.length !== 4) return $('#aErr').textContent = 'Escribe los últimos 4 números de tu celular.';
+  const r = await api('anotar', { turnoId: turnoSel.id, nombre, tel4 });
+  if (!r.ok) return $('#aErr').textContent = r.error;
+  yo = { nombre, tel4 }; store.set('yo', yo);
+  S = r; cerrar(); pintar();
+  const ins = S.inscritas.filter(i => i.turnoId === turnoSel.id);
+  const pos = ins.findIndex(i => soyYo(i.nombre));
+  toast(pos >= turnoSel.cupos ? 'Quedaste en lista de espera' : '¡Listo! Quedaste anotada');
+});
+
+/* ---------- Salir ---------- */
+let inscSel = null;
+function abrirSalir(id) {
+  inscSel = S.inscritas.find(i => i.id === id);
+  if (!inscSel) return;
+  const t = S.turnos.find(t => t.id === inscSel.turnoId);
+  $('#sInfo').textContent = inscSel.nombre + ' · ' + fechaLarga(t.fecha) + ' · ' + t.horario;
+  $('#sTelBox').hidden = !!pin;
+  $('#sTel').value = yo.tel4 || ''; $('#sErr').textContent = '';
+  abrir('#mSalir');
+}
+$('#sOk').onclick = () => conBoton($('#sOk'), async () => {
+  const r = await api('salir', { inscId: inscSel.id, tel4: $('#sTel').value, pin });
+  if (!r.ok) return $('#sErr').textContent = r.error;
+  S = r; cerrar(); pintar(); toast('Nombre quitado');
+});
+
+/* ---------- Admin ---------- */
+$('#btnAdmin').onclick = () => {
+  if (pin) { pin = ''; store.del('pin'); pintar(); toast('Saliste del modo administradora'); return; }
+  $('#pIn').value = ''; $('#pErr').textContent = ''; abrir('#mPin'); setTimeout(() => $('#pIn').focus(), 200);
+};
+$('#pOk').onclick = () => conBoton($('#pOk'), async () => {
+  const p = $('#pIn').value.trim();
+  const r = await api('login', { pin: p });
+  if (!r.ok) return $('#pErr').textContent = r.error;
+  pin = p; store.set('pin', p); S = r; cerrar(); pintar(); window.scrollTo(0, 0);
+});
+
+function filaVacia(prev) {
+  let fecha = iso(new Date());
+  if (prev) fecha = prev.fecha;
+  return { fecha, horario: prev ? prev.horario : '7:00 a 8:00 pm', nivel: prev ? prev.nivel : 'Mixto', cancha: prev ? prev.cancha : 'Cancha 1', cupos: prev ? prev.cupos : 4, nombres: [] };
+}
+const opts = (arr, v) => {
+  const list = arr.includes(v) || !v ? arr : [v, ...arr];
+  return list.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
+};
+function filaHtml(r) {
+  const nom = r.nombres || [];
+  return `<div class="nuevo" data-nombres="${esc(JSON.stringify(nom))}">
+    <button class="mini quitar" data-quitarfila>Quitar</button>
+    <label>Día</label><input type="date" class="nf" value="${r.fecha}">
+    <label>Horario</label><select class="nh">${opts(HORARIOS, r.horario)}<option value="__otro">Otro…</option></select>
+    <div class="grid2">
+      <div><label>Cancha</label><select class="nc">${opts(CANCHAS, r.cancha)}</select></div>
+      <div><label>Grupo</label><select class="nn">${opts(NIVELES, r.nivel)}</select></div>
+    </div>
+    <label>Cupos</label><select class="nk">${[2, 3, 4, 5, 6, 8].map(n => `<option ${n == r.cupos ? 'selected' : ''}>${n}</option>`).join('')}</select>
+    ${nom.length ? `<p class="ya">Ya anotadas: ${nom.map(esc).join(', ')}</p>` : ''}
+  </div>`;
+}
+function leerFilas() {
+  return [...document.querySelectorAll('#nFilas .nuevo')].map(el => ({
+    fecha: el.querySelector('.nf').value, horario: el.querySelector('.nh').value,
+    cancha: el.querySelector('.nc').value, nivel: el.querySelector('.nn').value, cupos: +el.querySelector('.nk').value,
+    nombres: JSON.parse(el.dataset.nombres || '[]')
+  }));
+}
+function abrirNuevos(filas) {
+  $('#nFilas').innerHTML = filas.map(filaHtml).join('');
+  $('#nErr').textContent = '';
+  abrir('#mNuevos');
+}
+$('#nFilas').addEventListener('click', e => {
+  if (e.target.matches('[data-quitarfila]')) e.target.closest('.nuevo').remove();
+});
+$('#nFilas').addEventListener('change', e => {
+  if (e.target.matches('.nh') && e.target.value === '__otro') {
+    const v = prompt('Escribe el horario (ej: 9:30 a 10:30 am)');
+    if (v && v.trim()) { e.target.insertAdjacentHTML('afterbegin', `<option selected>${esc(v.trim())}</option>`); e.target.value = v.trim(); }
+    else e.target.selectedIndex = 0;
+  }
+});
+$('#nMas').onclick = () => {
+  const f = leerFilas();
+  $('#nFilas').insertAdjacentHTML('beforeend', filaHtml(Object.assign(filaVacia(f[f.length - 1]), { nombres: [] })));
+  $('#nFilas').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+$('#nOk').onclick = () => conBoton($('#nOk'), async () => {
+  const turnos = leerFilas().filter(t => t.fecha && t.horario && t.horario !== '__otro');
+  if (!turnos.length) return $('#nErr').textContent = 'Agrega al menos un horario.';
+  const r = await api('crearTurnos', { pin, turnos });
+  if (!r.ok) return $('#nErr').textContent = r.error;
+  S = r; cerrar(); pintar(); toast(turnos.length === 1 ? 'Horario publicado' : turnos.length + ' horarios publicados');
+});
+
+/* Convierte el mensaje de WhatsApp en horarios */
+function parsearWhats(txt) {
+  const sinAcento = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const diasN = DIAS.map(sinAcento);
+  const hoy = f(hoyIso());
+  const lineas = txt.split(/\r?\n/).map(l => l.replace(/^\s*\[[^\]]*\]\s*[^:]*:\s*/, '').trim());
+  const out = []; let cur = null;
+  const fechaDe = (diaSem, num) => {
+    for (let k = -7; k <= 45; k++) {
+      const d = new Date(hoy); d.setDate(d.getDate() + k);
+      if (d.getDate() === num && (diaSem < 0 || d.getDay() === diaSem)) return iso(d);
+    }
+    for (let k = -7; k <= 45; k++) { const d = new Date(hoy); d.setDate(d.getDate() + k); if (d.getDate() === num) return iso(d); }
+    return '';
+  };
+  for (const l of lineas) {
+    const n = sinAcento(l);
+    const mDia = n.match(/^\W*(domingo|lunes|martes|miercoles|jueves|viernes|sabado)\s*(\d{1,2})/);
+    if (mDia) {
+      const nivel = NIVELES.find(v => n.includes(sinAcento(v))) || '';
+      cur = { fecha: fechaDe(diasN.indexOf(mDia[1]), +mDia[2]), horario: '', nivel: nivel || 'Mixto', cancha: '', cupos: 0, nombres: [] };
+      out.push(cur); continue;
+    }
+    if (!cur) continue;
+    const mC = n.match(/cancha\s*([a-z0-9]+)/);
+    if (mC && !cur.cancha) {
+      const c = mC[1]; cur.cancha = 'Cancha ' + (/^\d+$/.test(c) ? c : c[0].toUpperCase() + c.slice(1));
+      const mH = n.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*a\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)/);
+      if (mH) { const suf = mH[6]; cur.horario = mH[1] + ':' + (mH[2] || '00') + ' a ' + mH[4] + ':' + (mH[5] || '00') + ' ' + suf; }
+      continue;
+    }
+    const mN = l.match(/^(\d{1,2})\s*[.)-]\s*(.*)$/);
+    if (mN) {
+      cur.cupos = Math.max(cur.cupos, +mN[1]);
+      const nom = mN[2].replace(/[^\p{L}\p{N}\s'-]/gu, ' ').replace(/\s+/g, ' ').trim();
+      if (nom) cur.nombres.push(nom.charAt(0).toUpperCase() + nom.slice(1));
+    }
+  }
+  return out.filter(t => t.fecha).map(t => Object.assign(t, {
+    horario: t.horario || '7:00 a 8:00 pm', cancha: t.cancha || 'Cancha 1', cupos: t.cupos || 4
+  }));
+}
+$('#wOk').onclick = () => {
+  const filas = parsearWhats($('#wTxt').value);
+  if (!filas.length) return $('#wErr').textContent = 'No encontré horarios. Cada bloque debe empezar con el día, ej: "Martes 22 MIXTO".';
+  cerrar(); abrirNuevos(filas); toast('Revisa y toca Publicar');
+};
+
+function repetirSemana() {
+  // toma la semana más reciente publicada y la copia 7 días después
+  if (!S.turnos.length) return abrirNuevos([filaVacia()]);
+  const ult = S.turnos.map(t => t.fecha).sort().pop();
+  const lim = iso(new Date(f(ult).getTime() - 6 * 864e5));
+  const base = S.turnos.filter(t => t.fecha >= lim && t.fecha <= ult)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || minutos(a.horario) - minutos(b.horario));
+  abrirNuevos(base.map(t => {
+    const d = f(t.fecha); d.setDate(d.getDate() + 7);
+    return { fecha: iso(d), horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos };
+  }));
+  toast('Revisa las fechas y toca Publicar');
+}
+
+async function borrarTurno(id, btn) {
+  const t = S.turnos.find(x => x.id === id);
+  if (!t || !confirm('¿Borrar ' + fechaLarga(t.fecha) + ' ' + t.horario + '? Se borran también los nombres anotados.')) return;
+  conBoton(btn, async () => {
+    const r = await api('borrarTurno', { pin, turnoId: id });
+    if (!r.ok) return toast(r.error);
+    S = r; pintar(); toast('Horario borrado');
+  });
+}
+
+function copiarWhats() {
+  const hoy = hoyIso();
+  const ts = S.turnos.filter(t => t.fecha >= hoy)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || minutos(a.horario) - minutos(b.horario));
+  let txt = '';
+  for (const t of ts) {
+    const d = f(t.fecha);
+    txt += (txt ? '\n' : '') + '*' + DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + (t.nivel || '').toUpperCase() + '* ' + (EMOJI[t.nivel] || '') + '\n';
+    txt += t.cancha + ' de ' + t.horario.replace(/:00/g, '') + '\n';
+    const ins = S.inscritas.filter(i => i.turnoId === t.id);
+    for (let k = 0; k < t.cupos; k++) txt += (k + 1) + '. ' + (ins[k] ? ins[k].nombre : '') + '\n';
+    if (ins.length > t.cupos) txt += 'Espera: ' + ins.slice(t.cupos).map(i => i.nombre).join(', ') + '\n';
+  }
+  txt += '\n👉 No copien el chat, anótense aquí:\n' + location.href.split('?')[0].split('#')[0];
+  const ok = () => toast('Copiado. Pégalo en el grupo de WhatsApp');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, () => fallback(txt, ok));
+  else fallback(txt, ok);
+}
+function fallback(txt, ok) {
+  const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); ok(); } catch (e) { prompt('Copia este texto:', txt); }
+  ta.remove();
+}
+
+/* ---------- Actualización automática ---------- */
+cargar();
+setInterval(() => { if (!document.hidden && !document.querySelector('.modal.on')) cargar(true); }, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) cargar(true); });
+
+/* ---------- Modo prueba (sin Google) ---------- */
+function demoData() {
+  const d = new Date(), add = n => { const x = new Date(d); x.setDate(x.getDate() + n); return iso(x); };
+  return {
+    turnos: [
+      { id: 't1', fecha: add(1), horario: '7:00 a 8:00 pm', nivel: 'Mixto', cancha: 'Cancha 1', cupos: 4 },
+      { id: 't2', fecha: add(1), horario: '7:00 a 8:00 pm', nivel: 'Intermedio', cancha: 'Cancha Goya', cupos: 4 },
+      { id: 't3', fecha: add(3), horario: '9:00 a 10:00 am', nivel: 'Intermedio', cancha: 'Cancha 2', cupos: 6 }
+    ],
+    inscritas: [
+      { id: 'i1', turnoId: 't1', nombre: 'Ana', tel4: '1111' }, { id: 'i2', turnoId: 't1', nombre: 'Lucía', tel4: '2222' },
+      { id: 'i3', turnoId: 't1', nombre: 'Pao', tel4: '3333' }, { id: 'i4', turnoId: 't1', nombre: 'Vale', tel4: '4444' },
+      { id: 'i5', turnoId: 't2', nombre: 'Sofi', tel4: '5555' }
+    ]
+  };
+}
+function demoApi(a, p) {
+  const out = () => JSON.parse(JSON.stringify({ ok: true, hoy: iso(new Date()), turnos: D.turnos, inscritas: D.inscritas.map(({ tel4, ...i }) => i) }));
+  const err = e => ({ ok: false, error: e });
+  const id = () => Math.random().toString(36).slice(2, 10);
+  if (a === 'anotar') {
+    if (D.inscritas.some(i => i.turnoId === p.turnoId && i.nombre.toLowerCase() === p.nombre.toLowerCase() && i.tel4 === p.tel4)) return err('Ya estás anotada en este horario.');
+    D.inscritas.push({ id: id(), turnoId: p.turnoId, nombre: p.nombre, tel4: p.tel4 });
+  } else if (a === 'salir') {
+    const i = D.inscritas.find(x => x.id === p.inscId);
+    if (i && p.pin !== '2468' && (String(p.tel4).length !== 4 || i.tel4 !== p.tel4)) return err('Los 4 números no coinciden. Solo tú (o una admin) puedes quitar este nombre.');
+    D.inscritas = D.inscritas.filter(x => x.id !== p.inscId);
+  } else if (a === 'login' || a === 'crearTurnos' || a === 'borrarTurno') {
+    if (p.pin !== '2468') return err('Clave incorrecta.');
+    if (a === 'crearTurnos') p.turnos.forEach(t => { const tid = id(); D.turnos.push({ id: tid, fecha: t.fecha, horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos }); (t.nombres || []).forEach(n => D.inscritas.push({ id: id(), turnoId: tid, nombre: n, tel4: '' })); });
+    if (a === 'borrarTurno') { D.turnos = D.turnos.filter(t => t.id !== p.turnoId); D.inscritas = D.inscritas.filter(i => i.turnoId !== p.turnoId); }
+  }
+  return out();
+}
+</script>
+</body>
+</html>
