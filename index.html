@@ -180,7 +180,12 @@ async function api(accion, datos = {}) {
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(Object.assign({ accion }, datos))
   });
-  return r.json();
+  const j = await r.json();
+  // Google Sheets a veces convierte la fecha en objeto Date: la normalizamos a AAAA-MM-DD
+  if (j.turnos) j.turnos.forEach(t => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(t.fecha)) { const d = new Date(t.fecha); if (!isNaN(d)) t.fecha = iso(d); }
+  });
+  return j;
 }
 
 async function cargar(silencioso) {
