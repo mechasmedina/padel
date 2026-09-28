@@ -152,6 +152,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
 .slots.espera li{background:var(--wait-soft);border-color:#eccbbd}
 .slots.espera li .n{background:var(--wait)}
 .quitar{color:var(--wait);font-weight:600;font-size:14.5px;padding:8px}
+.mio{background:var(--ochre-soft);color:#6b5024;font-weight:700;font-size:14px;padding:8px 12px;border-radius:99px;flex:none}
 .titulito{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
 
 /* Admin */
@@ -329,6 +330,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
   <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="wOk">Convertir</button></div>
 </div>
 
+<!-- Es mi nombre -->
+<div class="hoja" id="hMio"><div class="asa"></div>
+  <h3>¿Este nombre es tuyo?</h3>
+  <p class="sub" id="mInfo"></p>
+  <p style="margin:0 0 16px;color:var(--muted)">Te anotó una administradora desde el chat. Pon los últimos 4 números de tu celular y este nombre queda tuyo: vas a poder quitarte sola cuando no puedas ir.</p>
+  <label for="mTel">Últimos 4 números de tu celular</label>
+  <input id="mTel" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Ej: 4821">
+  <p class="err" id="mErr"></p>
+  <div class="fila"><button class="btn sec" data-cerrar>Ahora no</button><button class="btn" id="mOk">Sí, es mío</button></div>
+</div>
+
 <!-- Nota y ubicación -->
 <div class="hoja" id="hNota"><div class="asa"></div>
   <h3>Nota y ubicación</h3>
@@ -433,6 +445,8 @@ const minutos = h => {
 };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const soyYo = n => !!yo.nombre && n.toLowerCase() === yo.nombre.toLowerCase();
+// las que anotó una administradora desde el chat todavía no tienen dueña
+const sinDuenia = i => !i.clave;
 const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
 const COLORES = ['#244640', '#c49a5c', '#8e9884', '#2f5a52', '#a97d45', '#6f7a67'];
 const colorDe = n => { let h = 0; for (const c of n) h = (h * 31 + c.charCodeAt(0)) >>> 0; return COLORES[h % COLORES.length]; };
@@ -568,7 +582,7 @@ function verDetalle(id, refrescar) {
   let li = '';
   for (let k = 0; k < t.cupos; k++) {
     const i = tit[k];
-    li += i ? `<li class="${soyYo(i.nombre) ? 'yo' : ''}"><span class="n" style="background:${colorDe(i.nombre)}">${k + 1}</span><span class="nom">${esc(i.nombre)}</span>${soyYo(i.nombre) || pin ? `<button class="quitar" data-salir="${i.id}">Quitar</button>` : ''}</li>`
+    li += i ? `<li class="${soyYo(i.nombre) ? 'yo' : ''}"><span class="n" style="background:${colorDe(i.nombre)}">${k + 1}</span><span class="nom">${esc(i.nombre)}</span>${soyYo(i.nombre) || pin ? `<button class="quitar" data-salir="${i.id}">Quitar</button>` : (sinDuenia(i) ? `<button class="mio" data-mio="${i.id}">Es mi nombre</button>` : '')}</li>`
       : `<li class="libre" data-anotar="${t.id}"><span class="n">${k + 1}</span><span class="nom">Libre · toca para anotarte</span></li>`;
   }
   const espHtml = esp.length ? `<p class="titulito">Lista de espera</p><ol class="slots espera">` + esp.map((i, k) => `<li class="${soyYo(i.nombre) ? 'yo' : ''}"><span class="n">${k + 1}</span><span class="nom">${esc(i.nombre)}</span>${soyYo(i.nombre) || pin ? `<button class="quitar" data-salir="${i.id}">Quitar</button>` : ''}</li>`).join('') + '</ol>' : '';
@@ -656,6 +670,8 @@ document.addEventListener('click', e => {
     $('#sTelBox').hidden = !!pin; $('#sTel').value = yo.tel4 || ''; $('#sErr').textContent = '';
     return abrir('hSalir');
   }
+  const mi = e.target.closest('[data-mio]');
+  if (mi) return abrirMio(mi.dataset.mio);
   const nt = e.target.closest('[data-nota]'); if (nt) return abrirNota(nt.dataset.nota);
   const bo = e.target.closest('[data-borrar]'); if (bo) return borrarTurno(bo.dataset.borrar, bo);
 });
@@ -681,6 +697,26 @@ $('#pOk').onclick = () => conBoton($('#pOk'), async () => {
   const r = await api('login', { pin: p });
   if (!r.ok) return $('#pErr').textContent = r.error;
   pin = p; store.set('pin', p); S = r; cerrar(true); pintar(); ir('mas'); toast('Hola, administradora');
+});
+
+/* ---------- Es mi nombre (para lo que cargó una admin) ---------- */
+let mioSel = null;
+function abrirMio(id) {
+  mioSel = S.inscritas.find(i => i.id === id);
+  if (!mioSel) return;
+  const t = S.turnos.find(t => t.id === mioSel.turnoId);
+  $('#mInfo').textContent = mioSel.nombre + ' · ' + fechaCorta(t.fecha) + ' · ' + horaBonita(t.horario);
+  $('#mTel').value = yo.tel4 || ''; $('#mErr').textContent = '';
+  abrir('hMio');
+  setTimeout(() => $('#mTel').focus(), 250);
+}
+$('#mOk').onclick = () => conBoton($('#mOk'), async () => {
+  const tel4 = $('#mTel').value.replace(/\D/g, '');
+  if (tel4.length !== 4) return $('#mErr').textContent = 'Escribe los últimos 4 números de tu celular.';
+  const r = await api('reclamar', { nombre: mioSel.nombre, tel4 });
+  if (!r.ok) return $('#mErr').textContent = r.error;
+  yo = { nombre: mioSel.nombre, tel4 }; store.set('yo', yo);
+  S = r; cerrar(); pintar(); toast('Listo, ese nombre ya es tuyo');
 });
 
 /* ---------- Reglas ---------- */
@@ -872,9 +908,13 @@ function demoData() {
   };
 }
 function demoApi(a, p) {
-  const out = () => JSON.parse(JSON.stringify({ ok: true, hoy: iso(new Date()), reglas: D.reglas || '', turnos: D.turnos, inscritas: D.inscritas.map(({ tel4, ...i }) => i) }));
+  const out = () => JSON.parse(JSON.stringify({ ok: true, hoy: iso(new Date()), reglas: D.reglas || '', turnos: D.turnos, inscritas: D.inscritas.map(({ tel4, ...i }) => ({ ...i, clave: !!tel4 })) }));
   const err = e => ({ ok: false, error: e });
   const id = () => Math.random().toString(36).slice(2, 10);
+  if (a === 'reclamar') {
+    D.inscritas.forEach(x => { if (x.nombre.toLowerCase() === String(p.nombre).toLowerCase() && !x.tel4) x.tel4 = p.tel4; });
+    return out();
+  }
   if (a === 'anotar') {
     if (D.inscritas.some(i => i.turnoId === p.turnoId && i.nombre.toLowerCase() === p.nombre.toLowerCase() && i.tel4 === p.tel4)) return err('Ya estás anotada en este horario.');
     D.inscritas.push({ id: id(), turnoId: p.turnoId, nombre: p.nombre, tel4: p.tel4 });
