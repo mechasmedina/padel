@@ -154,7 +154,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
 .nuevo{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 14px 14px;margin-top:12px;position:relative}
 .nuevo .quitar{position:absolute;right:6px;top:6px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-.ya{font-size:14.5px;color:var(--muted);margin:10px 0 0}
+.ya{font-size:15px;color:var(--muted);margin:10px 0 0}
+.nota{display:flex;gap:6px;align-items:flex-start;margin-top:8px;font-size:14.5px;color:#6b5024;background:var(--ochre-soft);border-radius:12px;padding:7px 10px}
+.nota svg{width:16px;height:16px;flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:1.8}
+.mapa{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:13px;border-radius:16px;background:var(--sage-soft);color:var(--teal);font-weight:700;text-decoration:none}
+.mapa svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}
+.reglas{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;font-size:16.5px;line-height:1.5}
+.reglas.vacias{color:var(--muted);font-style:italic}
 
 /* Ayuda */
 .pasos{counter-reset:p;list-style:none;margin:0;padding:0;display:grid;gap:12px}
@@ -182,7 +188,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
     <div class="tiles">
       <button class="tile" data-ir="horarios"><div class="ic c-teal"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.2"/></svg></div><span>Horarios</span></button>
       <button class="tile" data-ir="mios"><div class="ic c-ochre"><svg viewBox="0 0 24 24"><rect x="5.5" y="2.5" width="13" height="14" rx="6.5"/><path d="M12 16.5v5M10.5 21.5h3"/><path d="M9.5 7.5h.01M12 7.5h.01M14.5 7.5h.01M9.5 10.5h.01M12 10.5h.01M14.5 10.5h.01"/></svg><i class="badge" id="badgeMios" hidden>0</i></div><span>Mis partidos</span></button>
-      <button class="tile" data-abrir="hAyuda"><div class="ic c-sage"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4M12 16.8v.01"/></svg></div><span>Cómo funciona</span></button>
+      <button class="tile" data-ir="reglas"><div class="ic c-sage"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h11a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6M9 16h3.5"/></svg></div><span>Reglas</span></button>
     </div>
 
     <div class="sec" id="secProximo" hidden>
@@ -222,6 +228,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
       <p class="sub" id="miosSub">Donde estás anotada</p>
     </div>
     <div class="lista" id="listaMios"></div>
+  </section>
+
+  <!-- ============ REGLAS ============ -->
+  <section class="vista" id="v-reglas">
+    <div class="sec" style="padding-top:34px">
+      <h2 style="font-size:34px">Reglas del grupo</h2>
+      <p class="sub">Cómo jugamos y nos turnamos</p>
+    </div>
+    <div class="lista" id="cajaReglas"></div>
   </section>
 
   <!-- ============ MÁS ============ -->
@@ -306,6 +321,27 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
   <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="wOk">Convertir</button></div>
 </div>
 
+<!-- Nota y ubicación -->
+<div class="hoja" id="hNota"><div class="asa"></div>
+  <h3>Nota y ubicación</h3>
+  <p class="sub" id="ntInfo"></p>
+  <label for="ntNota">Nota para el grupo (opcional)</label>
+  <input id="ntNota" maxlength="200" placeholder="Ej: Cumpleaños de Maya, traer algo para compartir">
+  <label for="ntMapa">Link de Google Maps o indicaciones (opcional)</label>
+  <input id="ntMapa" inputmode="url" placeholder="Pega aquí el link de Google Maps">
+  <p class="err" id="ntErr"></p>
+  <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="ntOk">Guardar</button></div>
+</div>
+
+<!-- Editar reglas -->
+<div class="hoja" id="hReglas"><div class="asa"></div>
+  <h3>Editar reglas</h3>
+  <p class="sub">Escríbelas como quieras. Cada renglón se ve tal cual.</p>
+  <textarea id="rTxt" rows="10" placeholder="Mínimo 4 (cancha completa) máximo 8, teniendo en cuenta que nos turnamos."></textarea>
+  <p class="err" id="rErr"></p>
+  <div class="fila"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rOk">Guardar</button></div>
+</div>
+
 <!-- Ayuda -->
 <div class="hoja" id="hAyuda"><div class="asa"></div>
   <h3>Cómo funciona</h3>
@@ -336,7 +372,7 @@ const store = {
   set(k, v) { try { localStorage.setItem('padel_' + k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem('padel_' + k); } catch (e) {} }
 };
-let S = { turnos: [], inscritas: [], hoy: '' };
+let S = { turnos: [], inscritas: [], hoy: '', reglas: '' };
 let yo = store.get('yo') || { nombre: '', tel4: '' };
 let pin = store.get('pin') || '';
 let ocupado = false, cargado = false, diaSel = 'todos', detalleId = null;
@@ -415,6 +451,7 @@ function tarjeta(t) {
       <span class="hora" style="display:block">${esc(horaBonita(t.horario))}</span>
       <span class="meta" style="display:block">${esc(t.cancha)} · ${EMOJI[t.nivel] || ''} ${esc(t.nivel || '')}</span>
       <span class="puntos">${av}${est}</span>
+      ${t.nota ? `<span class="nota"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.7l5.9-.9z"/></svg><span>${esc(t.nota)}</span></span>` : ''}
     </span>
     <svg class="flecha" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
   </button>`;
@@ -466,6 +503,13 @@ function pintar() {
   $('#miosSub').textContent = yo.nombre ? 'Donde estás anotada como ' + yo.nombre : 'Anótate en un horario y aparecerá aquí';
   $('#listaMios').innerHTML = mios.length ? mios.map(t => `<p class="fecha-t">${esc(fechaLarga(t.fecha))}</p>` + tarjeta(t)).join('') : vacio('Aún no estás en ningún partido.');
 
+  // Reglas
+  $('#cajaReglas').innerHTML = (S.reglas
+    ? `<div class="reglas">${esc(S.reglas)}</div>`
+    : `<div class="reglas vacias">Todavía no hay reglas escritas.${pin ? ' Toca "Editar reglas" para agregarlas.' : ''}</div>`)
+    + (pin ? `<div class="fila"><button class="btn sec" id="editarReglas">Editar reglas</button></div>` : '');
+  if (pin) $('#editarReglas').onclick = abrirReglas;
+
   // Más
   $('#yoTxt').textContent = yo.nombre ? yo.nombre + ' · ••' + yo.tel4.slice(-2) : 'Sin guardar';
   pintarAdmin();
@@ -490,11 +534,13 @@ function pintarAdmin() {
       <button class="acc c-sage" id="aRepetir"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5"/></svg><b>Repetir semana pasada</b><small>Copia los horarios +7 días</small></button>
       <button class="acc c-beige" id="aPublicar"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M12 13v5M9.5 15.5h5"/></svg><b>Agregar a mano</b><small>Un horario nuevo</small></button>
     </div>
+    <div class="fila"><button class="btn sec" id="aReglas">Editar reglas del grupo</button></div>
     <button class="link" id="aSalir">Salir de administradora</button>`;
   $('#aPublicar').onclick = () => abrirNuevos([filaVacia()]);
   $('#aPegar').onclick = abrirPegar;
   $('#aRepetir').onclick = repetirSemana;
   $('#aWhats').onclick = copiarWhats;
+  $('#aReglas').onclick = abrirReglas;
   $('#aSalir').onclick = () => { pin = ''; store.del('pin'); pintar(); toast('Saliste del modo administradora'); };
 }
 
@@ -515,9 +561,12 @@ function verDetalle(id, refrescar) {
     : `<button class="btn ${libres ? '' : 'ochre'}" data-anotar="${t.id}">${libres ? 'Anotarme' : 'Anotarme en lista de espera'}</button>`;
   $('#detalle').innerHTML = `<div class="det-top"><span class="cancha ${claseCancha(t.cancha)}">${esc(letraCancha(t.cancha))}</span>
       <div><h3>${esc(horaBonita(t.horario))}</h3><div style="color:var(--muted)">${esc(fechaLarga(t.fecha))}<br>${esc(t.cancha)} · ${EMOJI[t.nivel] || ''} ${esc(t.nivel || '')}</div></div></div>
+    ${t.nota ? `<p class="nota"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.7l5.9-.9z"/></svg><span>${esc(t.nota)}</span></p>` : ''}
     <ol class="slots">${li}</ol>${espHtml}
+    ${t.mapa ? `<a class="mapa" href="${esc(t.mapa)}" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>Cómo llegar</a>` : ''}
     <div class="fila">${accion}</div>
-    ${pin ? `<button class="link" data-borrar="${t.id}" style="color:var(--wait)">Borrar este horario</button>` : ''}`;
+    ${pin ? `<button class="link" data-nota="${t.id}">Editar nota y ubicación</button>
+      <button class="link" data-borrar="${t.id}" style="color:var(--wait)">Borrar este horario</button>` : ''}`;
   if (!refrescar) abrir('hDetalle');
 }
 
@@ -584,6 +633,7 @@ document.addEventListener('click', e => {
     $('#sTelBox').hidden = !!pin; $('#sTel').value = yo.tel4 || ''; $('#sErr').textContent = '';
     return abrir('hSalir');
   }
+  const nt = e.target.closest('[data-nota]'); if (nt) return abrirNota(nt.dataset.nota);
   const bo = e.target.closest('[data-borrar]'); if (bo) return borrarTurno(bo.dataset.borrar, bo);
 });
 
@@ -610,9 +660,41 @@ $('#pOk').onclick = () => conBoton($('#pOk'), async () => {
   pin = p; store.set('pin', p); S = r; cerrar(true); pintar(); ir('mas'); toast('Hola, administradora');
 });
 
+/* ---------- Reglas ---------- */
+function abrirReglas() {
+  $('#rTxt').value = S.reglas || '';
+  $('#rErr').textContent = '';
+  abrir('hReglas');
+  setTimeout(() => $('#rTxt').focus(), 250);
+}
+$('#rOk').onclick = () => conBoton($('#rOk'), async () => {
+  const r = await api('guardarReglas', { pin, reglas: $('#rTxt').value });
+  if (!r.ok) return $('#rErr').textContent = r.error;
+  S = r; cerrar(true); pintar(); ir('reglas'); toast('Reglas guardadas');
+});
+
+/* ---------- Nota y ubicación de un horario ---------- */
+let notaSel = null;
+function abrirNota(id) {
+  notaSel = S.turnos.find(t => t.id === id);
+  if (!notaSel) return;
+  $('#ntInfo').textContent = fechaLarga(notaSel.fecha) + ' · ' + horaBonita(notaSel.horario) + ' · ' + notaSel.cancha;
+  $('#ntNota').value = notaSel.nota || '';
+  $('#ntMapa').value = notaSel.mapa || '';
+  $('#ntErr').textContent = '';
+  abrir('hNota');
+}
+$('#ntOk').onclick = () => conBoton($('#ntOk'), async () => {
+  const mapa = $('#ntMapa').value.trim();
+  if (mapa && !/^https?:\/\//i.test(mapa)) return $('#ntErr').textContent = 'El link debe empezar con https://';
+  const r = await api('editarTurno', { pin, turnoId: notaSel.id, nota: $('#ntNota').value, mapa });
+  if (!r.ok) return $('#ntErr').textContent = r.error;
+  S = r; cerrar(); pintar(); toast('Guardado');
+});
+
 /* ---------- Publicar horarios ---------- */
 function filaVacia(prev) {
-  return { fecha: prev ? prev.fecha : iso(new Date()), horario: prev ? prev.horario : '7:00 a 8:00 pm', nivel: prev ? prev.nivel : 'Mixto', cancha: prev ? prev.cancha : 'Cancha 1', cupos: prev ? prev.cupos : 4, nombres: [] };
+  return { fecha: prev ? prev.fecha : iso(new Date()), horario: prev ? prev.horario : '7:00 a 8:00 pm', nivel: prev ? prev.nivel : 'Mixto', cancha: prev ? prev.cancha : 'Cancha 1', cupos: prev ? prev.cupos : 4, nota: '', mapa: '', nombres: [] };
 }
 const opts = (arr, v) => (arr.includes(v) || !v ? arr : [v, ...arr]).map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
 function filaHtml(r) {
@@ -624,6 +706,8 @@ function filaHtml(r) {
     <div class="grid2"><div><label>Cancha</label><select class="nc">${opts(CANCHAS, r.cancha)}</select></div>
     <div><label>Grupo</label><select class="nn">${opts(NIVELES, r.nivel)}</select></div></div>
     <label>Cupos</label><select class="nk">${[2, 3, 4, 5, 6, 8].map(n => `<option ${n == r.cupos ? 'selected' : ''}>${n}</option>`).join('')}</select>
+    <label>Nota (opcional)</label><input class="nt" maxlength="200" value="${esc(r.nota || '')}" placeholder="Ej: Cumpleaños de Maya">
+    <label>Link de Google Maps (opcional)</label><input class="nm" inputmode="url" value="${esc(r.mapa || '')}" placeholder="https://maps.app.goo.gl/...">
     ${nom.length ? `<p class="ya">Ya anotadas: ${nom.map(esc).join(', ')}</p>` : ''}
   </div>`;
 }
@@ -631,6 +715,7 @@ function leerFilas() {
   return [...document.querySelectorAll('#nFilas .nuevo')].map(el => ({
     fecha: el.querySelector('.nf').value, horario: el.querySelector('.nh').value,
     cancha: el.querySelector('.nc').value, nivel: el.querySelector('.nn').value, cupos: +el.querySelector('.nk').value,
+    nota: el.querySelector('.nt').value.trim(), mapa: el.querySelector('.nm').value.trim(),
     nombres: JSON.parse(el.dataset.nombres || '[]')
   }));
 }
@@ -704,7 +789,7 @@ function repetirSemana() {
   const ult = S.turnos.map(t => t.fecha).sort().pop();
   const lim = iso(new Date(f(ult).getTime() - 6 * 864e5));
   const base = ordenar(S.turnos.filter(t => t.fecha >= lim && t.fecha <= ult));
-  abrirNuevos(base.map(t => { const d = f(t.fecha); d.setDate(d.getDate() + 7); return { fecha: iso(d), horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos }; }));
+  abrirNuevos(base.map(t => { const d = f(t.fecha); d.setDate(d.getDate() + 7); return { fecha: iso(d), horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos, nota: t.nota || '', mapa: t.mapa || '' }; }));
   toast('Revisa las fechas y toca Publicar');
 }
 async function borrarTurno(id, btn) {
@@ -722,6 +807,8 @@ function copiarWhats() {
     const d = f(t.fecha);
     txt += (txt ? '\n' : '') + '*' + DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + (t.nivel || '').toUpperCase() + '* ' + (EMOJI[t.nivel] || '') + '\n';
     txt += t.cancha + ' de ' + t.horario.replace(/:00/g, '') + '\n';
+    if (t.nota) txt += '⭐ ' + t.nota + '\n';
+    if (t.mapa) txt += '📍 ' + t.mapa + '\n';
     const ins = insDe(t.id);
     for (let k = 0; k < t.cupos; k++) txt += (k + 1) + '. ' + (ins[k] ? ins[k].nombre : '') + '\n';
     if (ins.length > t.cupos) txt += 'Espera: ' + ins.slice(t.cupos).map(i => i.nombre).join(', ') + '\n';
@@ -749,9 +836,10 @@ function demoData() {
       { id: 't1', fecha: add(1), horario: '7:00 a 8:00 pm', nivel: 'Mixto', cancha: 'Cancha 1', cupos: 5 },
       { id: 't2', fecha: add(2), horario: '9:00 a 10:00 am', nivel: 'Mixto', cancha: 'Cancha 2', cupos: 6 },
       { id: 't3', fecha: add(3), horario: '9:00 a 10:00 am', nivel: 'Mixto', cancha: 'Cancha 2', cupos: 6 },
-      { id: 't4', fecha: add(3), horario: '6:00 a 7:00 pm', nivel: 'Intermedio', cancha: 'Cancha Goya', cupos: 4 },
+      { id: 't4', fecha: add(3), horario: '6:00 a 7:00 pm', nivel: 'Intermedio', cancha: 'Cancha Goya', cupos: 4, nota: 'Cumpleaños de Maya, traemos algo para compartir', mapa: 'https://maps.google.com' },
       { id: 't5', fecha: add(4), horario: '9:00 a 10:00 am', nivel: 'Mixto', cancha: 'Cancha 2', cupos: 5 }
     ],
+    reglas: 'Mínimo 4 (cancha completa) máximo 8, teniendo en cuenta que nos turnamos.\nCada una tiene 3 saques y al final del juego deben sumar 12 puntos, ahí ya entran las otras y así sucesivamente hasta que termine la hora de juego.',
     inscritas: [
       ['t1', 'Jana'], ['t1', 'Bel'], ['t1', 'Mafer'], ['t1', 'Maya'], ['t1', 'Liz'],
       ['t2', 'Jana'], ['t2', 'Mafer'], ['t2', 'Gis'], ['t2', 'Delia'],
@@ -761,7 +849,7 @@ function demoData() {
   };
 }
 function demoApi(a, p) {
-  const out = () => JSON.parse(JSON.stringify({ ok: true, hoy: iso(new Date()), turnos: D.turnos, inscritas: D.inscritas.map(({ tel4, ...i }) => i) }));
+  const out = () => JSON.parse(JSON.stringify({ ok: true, hoy: iso(new Date()), reglas: D.reglas || '', turnos: D.turnos, inscritas: D.inscritas.map(({ tel4, ...i }) => i) }));
   const err = e => ({ ok: false, error: e });
   const id = () => Math.random().toString(36).slice(2, 10);
   if (a === 'anotar') {
@@ -771,9 +859,11 @@ function demoApi(a, p) {
     const i = D.inscritas.find(x => x.id === p.inscId);
     if (i && p.pin !== '2468' && (String(p.tel4).length !== 4 || i.tel4 !== p.tel4)) return err('Los 4 números no coinciden. Solo tú (o una admin) puedes quitar este nombre.');
     D.inscritas = D.inscritas.filter(x => x.id !== p.inscId);
-  } else if (a === 'login' || a === 'crearTurnos' || a === 'borrarTurno') {
+  } else if (['login', 'crearTurnos', 'borrarTurno', 'editarTurno', 'guardarReglas'].includes(a)) {
     if (p.pin !== '2468') return err('Clave incorrecta.');
-    if (a === 'crearTurnos') p.turnos.forEach(t => { const tid = id(); D.turnos.push({ id: tid, fecha: t.fecha, horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos }); (t.nombres || []).forEach(n => D.inscritas.push({ id: id(), turnoId: tid, nombre: n, tel4: '' })); });
+    if (a === 'guardarReglas') D.reglas = p.reglas;
+    if (a === 'editarTurno') { const t = D.turnos.find(x => x.id === p.turnoId); if (t) { t.nota = p.nota; t.mapa = p.mapa; } }
+    if (a === 'crearTurnos') p.turnos.forEach(t => { const tid = id(); D.turnos.push({ id: tid, fecha: t.fecha, horario: t.horario, nivel: t.nivel, cancha: t.cancha, cupos: t.cupos, nota: t.nota || '', mapa: t.mapa || '' }); (t.nombres || []).forEach(n => D.inscritas.push({ id: id(), turnoId: tid, nombre: n, tel4: '' })); });
     if (a === 'borrarTurno') { D.turnos = D.turnos.filter(t => t.id !== p.turnoId); D.inscritas = D.inscritas.filter(i => i.turnoId !== p.turnoId); }
   }
   return out();
