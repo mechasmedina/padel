@@ -113,8 +113,12 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 /* ---------- Hojas (modales) ---------- */
 .velo{position:fixed;inset:0;background:rgba(31,43,40,.42);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 .velo.on{opacity:1;pointer-events:auto}
-.hoja{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:520px;margin:0 auto;background:var(--paper);border-radius:28px 28px 0 0;padding:10px 22px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility .28s;visibility:hidden}
+.hoja{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:520px;margin:0 auto;background:var(--paper);border-radius:28px 28px 0 0;padding:0 22px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility .28s;visibility:hidden;overscroll-behavior:contain}
 .hoja.on{transform:none;visibility:visible}
+.barra{position:sticky;top:0;z-index:2;margin:0 -22px 12px;padding:10px 16px 10px 22px;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.barra .asa{flex:1;height:5px;border-radius:3px;background:#d6ccbc;max-width:44px;margin:0 auto}
+.cerrar{flex:none;display:flex;align-items:center;gap:7px;background:var(--beige);color:var(--teal);border-radius:99px;padding:9px 16px;font-size:15.5px;font-weight:700}
+.cerrar svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
 .asa{width:44px;height:5px;border-radius:3px;background:#d6ccbc;margin:0 auto 16px}
 .hoja h3{font-family:var(--serif);font-weight:500;font-size:28px;color:var(--teal);margin:0 0 4px;line-height:1.1}
 .hoja .sub{color:var(--muted);margin:0 0 18px}
@@ -573,6 +577,15 @@ function verDetalle(id, refrescar) {
 }
 
 /* ---------- Navegación y hojas ---------- */
+// cada hoja lleva arriba una barra fija con el botón de cerrar
+document.querySelectorAll('.hoja').forEach(h => {
+  const vieja = h.querySelector(':scope > .asa');
+  if (vieja) vieja.remove();
+  h.insertAdjacentHTML('afterbegin',
+    '<div class="barra"><span class="asa"></span>' +
+    '<button class="cerrar" data-cerrar><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Cerrar</button></div>');
+});
+
 function ir(v) {
   document.querySelectorAll('.vista').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
   document.querySelectorAll('.nb').forEach(b => b.classList.toggle('on', b.dataset.ir === v));
@@ -581,17 +594,21 @@ function ir(v) {
 let pila = [];
 function abrir(id) {
   document.querySelectorAll('.hoja.on').forEach(h => { if (h.id !== id) { h.classList.remove('on'); pila.push(h.id); } });
-  $('#' + id).classList.add('on'); $('#velo').classList.add('on');
+  const abierta = $('#' + id);
+  abierta.classList.add('on'); abierta.scrollTop = 0; $('#velo').classList.add('on');
+  try { if (!history.state || !history.state.hoja) history.pushState({ hoja: 1 }, ''); } catch (e) {}
 }
+window.addEventListener('popstate', () => { if (document.querySelector('.hoja.on')) cerrar(true); });
 function cerrar(todo) {
   document.querySelectorAll('.hoja.on').forEach(h => h.classList.remove('on'));
   const prev = todo ? null : pila.pop();
   if (todo) pila = [];
   if (prev === 'hDetalle' && detalleId) { verDetalle(detalleId, true); $('#hDetalle').classList.add('on'); return; }
   $('#velo').classList.remove('on'); detalleId = null; pila = [];
+  try { if (history.state && history.state.hoja) history.back(); } catch (e) {}
 }
 $('#velo').onclick = () => cerrar(true);
-document.querySelectorAll('[data-cerrar]').forEach(b => b.onclick = () => cerrar());
+document.addEventListener('click', e => { if (e.target.closest('[data-cerrar]')) cerrar(); });
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
 async function conBoton(btn, fn) {
   if (ocupado) return; ocupado = true;
